@@ -1,0 +1,5 @@
+# Laptop logger dependencies.
+
+pynput>=1.7
+
+# The schema side (aacdata) is pure standard library, so nothing else is needed.

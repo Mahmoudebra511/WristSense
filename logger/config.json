@@ -1,0 +1,91 @@
+{
+  "poll_hz": 4,
+  "default_category": "other",
+  "categories": {
+    "study": {
+      "processes": [
+        "code\\.exe",
+        "pycharm64?\\.exe",
+        "idea64?\\.exe",
+        "acrord32\\.exe",
+        "winword\\.exe",
+        "powerpnt\\.exe",
+        "zotero\\.exe",
+        "obsidian\\.exe",
+        "notion\\.exe",
+        "mendeley\\.exe",
+        "sumatrapdf\\.exe",
+        "foxit.*\\.exe",
+        "rstudio\\.exe",
+        "jupyter"
+      ],
+      "titles": [
+        "overleaf",
+        "jupyter",
+        "colab",
+        "khan\\s*academy",
+        "coursera",
+        "\\bedx\\b",
+        "udemy",
+        "lecture",
+        "documentation",
+        "\\bdocs?\\.",
+        "tutorial",
+        "stack\\s*overflow",
+        "github",
+        "arxiv",
+        "google\\s*scholar",
+        "python",
+        "pytorch",
+        "tensorflow",
+        "مذاكرة",
+        "محاضرة",
+        "ملخص",
+        "كورس"
+      ]
+    },
+    "entertainment": {
+      "processes": [
+        "vlc\\.exe",
+        "mpv\\.exe",
+        "spotify\\.exe",
+        "steam\\.exe",
+        "epicgameslauncher\\.exe"
+      ],
+      "titles": [
+        "youtube",
+        "netflix",
+        "twitch",
+        "reddit",
+        "tiktok",
+        "shahid",
+        "shahid4u",
+        "anime",
+        "prime\\s*video",
+        "disney\\+",
+        "spotify"
+      ]
+    },
+    "social": {
+      "processes": [
+        "discord\\.exe",
+        "telegram\\.exe",
+        "whatsapp\\.exe",
+        "slack\\.exe",
+        "ms-teams\\.exe"
+      ],
+      "titles": [
+        "discord",
+        "telegram",
+        "whatsapp",
+        "messenger",
+        "facebook",
+        "instagram",
+        "twitter",
+        "linkedin",
+        "snapchat"
+      ]
+    }
+  },
+  "exclude_processes": []
+}
