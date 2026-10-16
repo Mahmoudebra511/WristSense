@@ -172,21 +172,26 @@ class StateMachine:
         # --- Distraction confirmation timer ---------------------------
         is_distracted = model_state == DISTRACTED
         if is_distracted:
+            if self.state == DISTRACTED:
+                # Already confirmed distracted: just check alert delay.
+                if self.distraction_start_ms is not None:
+                    elapsed = ts_ms - self.distraction_start_ms
+                    if elapsed >= cfg.alert_delay_s * 1000:
+                        self._maybe_alert(ts_ms, "sustained_distraction")
+                self._record(ts_ms)
+                return self.state
+            # Not yet in DISTRACTED state: need to confirm first.
             if not self.timer.active or self.timer.value != DISTRACTED:
                 # Start / restart the distraction confirmation timer.
                 self.timer = _TimerState(active=True, start_ms=ts_ms, value=DISTRACTED)
-                self.distraction_start_ms = None
                 self._record(ts_ms)
-                return self.state
-            # Timer already running on DISTRACTED: check confirmation before switching.
+                return self.state  # still ON_TASK, confirming
+            # Timer already running on DISTRACTED: check confirmation.
             if ts_ms - self.timer.start_ms <= cfg.confirm_s * 1000:
                 self._record(ts_ms)
                 return self.state  # still confirming
-            if self.distraction_start_ms is None:
-                self.distraction_start_ms = ts_ms
-            elapsed = ts_ms - self.distraction_start_ms
-            if elapsed >= cfg.alert_delay_s * 1000:
-                self._maybe_alert(ts_ms, "sustained_distraction")
+            # Confirmed! Enter DISTRACTED state.
+            self.distraction_start_ms = ts_ms
             self._switch(DISTRACTED, ts_ms, "confirmed_distraction")
             self._record(ts_ms)
             return self.state

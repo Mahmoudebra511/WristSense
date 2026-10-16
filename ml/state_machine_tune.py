@@ -45,17 +45,20 @@ def rows_to_events(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Convert fused CSV rows (or event dicts) into replay events."""
     events: list[dict[str, Any]] = []
     for row in rows:
-        label = str(row.get("task_state", "")).strip()
+        # Prefer task_state (CSV column), fall back to ground_truth (event dicts).
+        label = str(row.get("task_state", row.get("ground_truth", ""))).strip()
+        # Preserve explicit model_state if present; otherwise derive from label.
+        model_state = row.get("model_state", label if label in LABELS else "ON_TASK")
         ts_ms = row.get("ts_ms")
         if ts_ms is None:
             ts_ms = row.get("start_ms")
         events.append(
             {
                 "ts_ms": int(ts_ms),
-                "model_state": label if label in LABELS else "ON_TASK",
-                "face_present": None,
-                "away_signal": label == "AWAY",
-                "break_declared": label == "BREAK",
+                "model_state": model_state,
+                "face_present": row.get("face_present", None),
+                "away_signal": bool(row.get("away_signal", label == "AWAY")),
+                "break_declared": bool(row.get("break_declared", label == "BREAK")),
                 "ground_truth": label,
             }
         )

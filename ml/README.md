@@ -1,7 +1,8 @@
-# ML feature pipeline + baseline model + early fusion + replay (Section 5.5 — Mahmoud's part)
+# ML feature pipeline + baseline model + early fusion + replay + evaluation + state-machine tuning (Section 5.5 — Mahmoud's part)
 
 Deterministic, one-command tools for feature extraction, baseline modeling,
-sensor fusion, and state-machine replay from recorded sessions.
+sensor fusion, state-machine replay, evaluation, and parameter tuning from
+recorded sessions.
 
 ## Module layout
 
@@ -15,6 +16,8 @@ sensor fusion, and state-machine replay from recorded sessions.
 | `fusion.py` | early fusion table: one row per 30 s decision window |
 | `state_machine.py` | on-task state machine with hysteresis timers |
 | `replay.py` | replay tool: run state machine on recorded/synthetic sessions |
+| `evaluate.py` | evaluation metrics: macro-F1, confusion matrix, false alerts/hour, ablation |
+| `state_machine_tune.py` | grid-search tuning of state machine parameters |
 
 ## 1. Feature pipeline
 
@@ -44,7 +47,7 @@ python -m ml.fusion data/processed/ --out fused.csv --window-s 30
 One row per 30-second decision window with `imu_*`, `logger_*`, `vision_*`
 aggregates plus `task_state`.
 
-## 4. State machine + replay (NEW)
+## 4. State machine + replay
 
 The state machine implements the project document's decision hierarchy
 (presence → context → phone → engagement → time) with hysteresis timers:
@@ -62,15 +65,41 @@ python -m ml.replay --fused fused.csv --model models/baseline.joblib --print-sta
 
 # replay a scripted synthetic session (no model needed)
 python -m ml.replay --synthetic --duration 600 --window-s 30 --seed 1
-
-# tune parameters and compare false alerts / hour
-python -m ml.replay --fused fused.csv --grace-s 60 --confirm-s 15 --alert-delay-s 90 --out replay.json
 ```
 
 Outputs per-window state timeline, state transitions, alerts, false-alerts-per-hour,
 detection delay, and per-state agreement vs ground truth.
 
-## 5. Requirements
+## 5. Evaluation
+
+```bash
+# leave-one-subject-out evaluation across sessions
+python -m ml.evaluate data/processed/ --fused fused.csv --cv
+
+# ablation study: IMU alone vs IMU+logger vs IMU+logger+vision
+python -m ml.evaluate data/processed/ --ablation
+
+# both + save JSON report
+python -m ml.evaluate data/processed/ --cv --ablation --report reports/eval.json --duration-s 3600
+```
+
+Reports macro-F1, accuracy, per-class precision/recall/F1/support, confusion
+matrix, false alerts per hour, and per-subject results.
+
+## 6. State machine tuning
+
+Grid-searches `grace_s`, `confirm_s`, `alert_delay_s`, `away_threshold_s` and
+selects the combination with the lowest false-alert rate while keeping
+detection delay within an optional maximum:
+
+```bash
+python -m ml.state_machine_tune data/processed/ --fused fused.csv \
+    --grace-s 30,60,90,120 --confirm-s 10,20,30 \
+    --alert-delay-s 60,90,120,180 --away-threshold-s 20,30,60 \
+    --max-delay-s 60 --out reports/tune.json
+```
+
+## 7. Requirements
 
 ```
 numpy>=1.24
@@ -81,8 +110,3 @@ joblib
 
 Declared in `requirements-ml.txt`. Everything else in AAC is pure standard
 library.
-
-## Next steps (not yet implemented)
-
-* `evaluate.py` — false alerts/hour, detection delay, ablation study
-* `state_machine_tune.py` — automated parameter sweep for the state machine
